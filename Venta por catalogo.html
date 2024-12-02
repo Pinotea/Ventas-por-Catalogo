@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Ventas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .bg-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .input {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .button {
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: rgba(59, 130, 246, 0.8);
+        }
+
+        input[type="text"], input[type="tel"], input[type="email"], input[type="number"], input[type="password"], select, input[type="date"], textarea {
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        input::placeholder {
+            color: #666;
+        }
+        .flatpickr-calendar {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .flatpickr-day {
+            color: #333 !important;
+        }
+        .flatpickr-day.has-venta {
+            background-color: #4CAF50 !important;
+            border-color: #4CAF50 !important;
+            color: white !important;
+        }
+        #fechaVenta {
+            color: #000000;
+        }
+        .camera-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+        }
+        #videoPreview {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient text-white py-8">
+    <div class="container mx-auto px-4">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                CATÁLOGO DE VENTAS
+            </h1>
+            <div class="flex justify-center items-center mb-4">
+                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo%20jpeg.jpg-jfMixjIjywZhD6jClT4cTIedZXUmgf.jpeg" alt="Logo Catálogo de Ventas" class="w-48 h-48 object-cover rounded-lg">
+            </div>
+        </header>
+
+        <div id="loginForm" class="w-full max-w-md mx-auto">
+            <div class="card rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-white">Iniciar Sesión</h2>
+                <form id="login" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-200">Usuario</label>
+                        <input type="text" id="username" required class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div id="passwordField">
+                        <label for="password" class="block text-sm font-medium text-gray-200">Contraseña</label>
+                        <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <button type="submit" class="w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Iniciar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <nav id="adminNav" class="mb-8 flex flex-wrap justify-center gap-2 hidden">
+            <button id="irFormulario" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Nuevo Producto
+            </button>
+            <button id="irCatalogo" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Ver Catálogo
+            </button>
+            <button id="irHistorial" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Historial de Ventas
+            </button>
+            <button id="irVentasRealizadas" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Ventas Realizadas
+            </button>
+            <button id="cerrarSesion" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Cerrar Sesión
+            </button>
+            <div id="resetButtonContainer"></div>
+        </nav>
+
+        <nav id="userNav" class="mb-8 flex flex-wrap justify-center gap-2 hidden">
+            <button id="irCatalogoUsuario" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Ver Catálogo
+            </button>
+            <button id="cerrarSesionUsuario" class="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Cerrar Sesión
+            </button>
+        </nav>
+
+        <div id="formulario" class="w-full max-w-2xl mx-auto hidden">
+            <div class="card rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-white">Registro de Producto o Servicio</h2>
+                <p class="text-gray-200 mb-6 text-center">Complete el formulario para agregar un nuevo producto o servicio al catálogo.</p>
+                <form id="productoForm" class="space-y-4">
+                    <div>
+                        <label for="nombre" class="block text-sm font-medium text-gray-200">Nombre del Producto/Servicio</label>
+                        <input type="text" id="nombre" required class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="descripcion" class="block text-sm font-medium text-gray-200">Descripción</label>
+                        <textarea id="descripcion" rows="3" class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"></textarea>
+                    </div>
+                    <div>
+                        <label for="categoria" class="block text-sm font-medium text-gray-200">Categoría</label>
+                        <select id="categoria" required class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Seleccione una categoría</option>
+                            <option value="producto">Producto</option>
+                            <option value="servicio">Servicio</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="precio" class="block text-sm font-medium text-gray-200">Precio (₡)</label>
+                        <input type="number" id="precio" required step="0.01" min="0" class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="stock" class="block text-sm font-medium text-gray-200">Stock (solo para productos)</label>
+                        <input type="number" id="stock" min="0" class="mt-1 block w-full px-3 py-2 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div id="imagenPreview" class="hidden">
+                        <img id="previewImage" src="" alt="Vista previa de la imagen" class="w-full h-48 object-cover rounded-md mb-4">
+                    </div>
+                    <div class="flex space-x-4">
+                        <button type="button" id="agregar" class="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Agregar al Catálogo
+                        </button>
+                        <button type="button" id="limpiar" class="flex-1 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Limpiar Formulario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="catalogo" class="w-full max-w-4xl mx-auto hidden">
+            <div class="card rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-white">Catálogo de Productos y Servicios</h2>
+                <div id="listaCatalogo" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Los productos y servicios se insertarán aquí -->
+                </div>
+            </div>
+        </div>
+
+        <div id="historial" class="w-full max-w-4xl mx-auto hidden">
+            <div class="card rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-white">Historial de Ventas</h2>
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <div id="calendarioVentas" class="flex-1"></div>
+                    <p class="text-sm text-white mb-2">Pulse en un día para visualizar las ventas realizadas</p>
+                    <div id="ventasDelDia" class="flex-1 bg-white/10 p-4 rounded-md">
+                        <h3 class="text-xl font-semibold mb-2 text-white">Ventas del día</h3>
+                        <div id="listaVentasDelDia" class="space-y-2">
+                            <!-- Las ventas del día seleccionado se insertarán aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ventasRealizadas" class="w-full max-w-4xl mx-auto hidden">
+            <div class="card rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-white">Ventas Realizadas</h2>
+                <div id="listaVentasRealizadas" class="space-y-4">
+                <!-- Las ventas realizadas se insertarán aquí -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Add camera button -->
+        <button id="openCamera" class="camera-button bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
+
+        <!-- Camera modal -->
+        <div id="cameraModal" class="modal">
+            <div class="modal-content">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Tomar Foto del Producto</h2>
+                <video id="videoPreview" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <div class="mt-4 flex justify-center space-x-4">
+                    <button id="capturePhoto" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Capturar Foto
+                    </button>
+                    <button id="closeCamera" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Purchase modal -->
+        <div id="purchaseModal" class="modal">
+            <div class="modal-content">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Realizar Compra</h2>
+                <form id="purchaseForm" class="space-y-4">
+                    <div>
+                        <label for="cantidadCompra" class="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <input type="number" id="cantidadCompra" required min="1" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="nombreComprador" class="block text-sm font-medium text-gray-700">Nombre del Comprador</label>
+                        <input type="text" id="nombreComprador" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="telefonoComprador" class="block text-sm font-medium text-gray-700">Número de Teléfono</label>
+                        <input type="tel" id="telefonoComprador" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <p class="text-sm text-gray-500">Por favor, rellene todos los campos. Son obligatorios para coordinar el pago y la entrega del producto.</p>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelPurchase" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Confirmar Compra
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        let lastCapturedImage = null;
+        let isAdmin = false;
+        const adminUser = 'admin';
+        const adminPassword = 'admin123';
+        let currentProductId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminEmailField = document.getElementById('adminEmailField');
+            if (adminEmailField) {
+                adminEmailField.classList.add('hidden');
+            }
+        });
+
+        flatpickr("#fechaVenta", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            locale: "es"
+        });
+
+        function mostrarVista(vista) {
+            document.getElementById('formulario').classList.add('hidden');
+            document.getElementById('catalogo').classList.add('hidden');
+            document.getElementById('historial').classList.add('hidden');
+            document.getElementById('ventasRealizadas').classList.add('hidden');
+            document.getElementById(vista).classList.remove('hidden');
+
+            if (vista === 'catalogo') {
+                cargarCatalogo();
+            } else if (vista === 'historial') {
+                cargarHistorial();
+            } else if (vista === 'ventasRealizadas') {
+                cargarVentasRealizadas();
+            }
+
+            if (isAdmin) {
+                document.getElementById('openCamera').classList.remove('hidden');
+            } else {
+                document.getElementById('openCamera').classList.add('hidden');
+            }
+        }
+
+        function cargarCatalogo() {
+            const listaCatalogo = document.getElementById('listaCatalogo');
+            listaCatalogo.innerHTML = '';
+            const productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+            productos.forEach(producto => {
+                const productoElement = document.createElement('div');
+                productoElement.className = 'bg-white/10 p-4 rounded-md';
+                productoElement.innerHTML = `
+                    ${producto.imagen ? 
+                        `<img src="${producto.imagen}" alt="${producto.nombre}" class="w-full h-48 object-cover rounded-md mb-4">` : 
+                        '<div class="w-full h-48 bg-gray-300 rounded-md mb-4 flex items-center justify-center">Sin imagen</div>'
+                    }
+                    <h3 class="text-lg font-semibold mb-2">${producto.nombre}</h3>
+                    <p><strong>Descripción:</strong> ${producto.descripcion}</p>
+                    <p><strong>Categoría:</strong> ${producto.categoria}</p>
+                    <p><strong>Precio:</strong> ₡${producto.precio}</p>
+                    ${producto.categoria === 'producto' ? `<p><strong>Stock:</strong> ${producto.stock}</p>` : ''}
+                    <div class="mt-4 flex space-x-2">
+                        ${isAdmin ? `
+                            <button class="editarProducto px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${producto.id}">Editar</button>
+                            <button class="eliminarProducto px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${producto.id}">Eliminar</button>
+                        ` : ''}
+                        <button class="venderProducto px-3 py-1 ${producto.categoria === 'producto' && producto.stock === 0 ? 'bg-gray-500' : 'bg-green-500'} text-white rounded hover:${producto.categoria === 'producto' && producto.stock === 0 ? 'bg-gray-600' : 'bg-green-600'}" data-id="${producto.id}">${producto.categoria === 'producto' && producto.stock === 0 ? 'Agotado' : 'Comprar'}</button>
+                    </div>
+                `;
+                listaCatalogo.appendChild(productoElement);
+            });
+
+            if (isAdmin) {
+                // Agregar event listeners para los botones de administrador
+                document.querySelectorAll('.editarProducto').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        editarProducto(id);
+                    });
+                });
+
+                document.querySelectorAll('.eliminarProducto').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if (confirm('¿Está seguro de que desea eliminar este producto?')) {
+                            eliminarProducto(id);
+                        }
+                    });
+                });
+            }
+
+            document.querySelectorAll('.venderProducto').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    mostrarVentanaCompra(id);
+                });
+            });
+        }
+
+        function editarProducto(id) {
+            const productos = JSON.parse(localStorage.getItem('productos')) || [];
+            const producto = productos.find(p => p.id === parseInt(id));
+            if (producto) {
+                document.getElementById('nombre').value = producto.nombre;
+                document.getElementById('descripcion').value = producto.descripcion;
+                document.getElementById('categoria').value = producto.categoria;
+                document.getElementById('precio').value = producto.precio;
+                document.getElementById('stock').value = producto.stock || '';
+                
+                if (producto.imagen) {
+                    document.getElementById('imagenPreview').classList.remove('hidden');
+                    document.getElementById('previewImage').src = producto.imagen;
+                    lastCapturedImage = producto.imagen;
+                } else {
+                    document.getElementById('imagenPreview').classList.add('hidden');
+                    lastCapturedImage = null;
+                }
+                
+                // Cambiar el botón de "Agregar" a "Actualizar"
+                const agregarBtn = document.getElementById('agregar');
+                agregarBtn.textContent = 'Actualizar Producto';
+                agregarBtn.setAttribute('data-id', id);
+                
+                mostrarVista('formulario');
+            }
+        }
+
+        function eliminarProducto(id) {
+            let productos = JSON.parse(localStorage.getItem('productos')) || [];
+            productos = productos.filter(producto => producto.id !== parseInt(id));
+            localStorage.setItem('productos', JSON.stringify(productos));
+            cargarCatalogo();
+        }
+
+        function mostrarVentanaCompra(id) {
+            currentProductId = id;
+            const purchaseModal = document.getElementById('purchaseModal');
+            purchaseModal.style.display = 'block';
+        }
+
+        document.getElementById('cancelPurchase').addEventListener('click', () => {
+            document.getElementById('purchaseModal').style.display = 'none';
+        });
+
+        document.getElementById('purchaseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cantidad = parseInt(document.getElementById('cantidadCompra').value);
+            const nombreComprador = document.getElementById('nombreComprador').value;
+            const telefonoComprador = document.getElementById('telefonoComprador').value;
+
+            if (!cantidad || !nombreComprador || !telefonoComprador) {
+                alert('Por favor, complete todos los campos.');
+                return;
+            }
+
+            venderProducto(currentProductId, cantidad, nombreComprador, telefonoComprador);
+            document.getElementById('purchaseModal').style.display = 'none';
+            
+            // Limpiar los campos del formulario
+            document.getElementById('cantidadCompra').value = '';
+            document.getElementById('nombreComprador').value = '';
+            document.getElementById('telefonoComprador').value = '';
+        });
+
+        function venderProducto(id, cantidad, nombreComprador, telefonoComprador) {
+            const productos = JSON.parse(localStorage.getItem('productos')) || [];
+            const producto = productos.find(p => p.id === parseInt(id));
+            if (producto) {
+                if (producto.categoria === 'producto') {
+                    if (producto.stock === 0) {
+                        alert('Lo sentimos, este producto está agotado.');
+                        return;
+                    } else if (producto.stock < cantidad) {
+                        alert('No hay suficiente stock para realizar esta compra.');
+                        return;
+                    }
+                }
+                
+                const venta = {
+                    id: Date.now(),
+                    productoId: producto.id,
+                    nombreProducto: producto.nombre,
+                    cantidad: cantidad,
+                    precioUnitario: producto.precio,
+                    total: producto.precio * cantidad,
+                    fecha: new Date().toISOString(),
+                    nombreComprador: nombreComprador,
+                    telefonoComprador: telefonoComprador
+                };
+                
+                let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+                ventas.push(venta);
+                localStorage.setItem('ventas', JSON.stringify(ventas));
+                
+                if (producto.categoria === 'producto') {
+                    producto.stock -= cantidad;
+                    if (producto.stock === 0) {
+                        const botonCompra = document.querySelector(`.venderProducto[data-id="${producto.id}"]`);
+                        if (botonCompra) {
+                            botonCompra.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            botonCompra.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                            botonCompra.textContent = 'Agotado';
+                        }
+                    }
+                    localStorage.setItem('productos', JSON.stringify(productos));
+                }
+                
+                alert(`Compra realizada con éxito. Total: ₡${venta.total}`);
+                cargarCatalogo();
+            }
+        }
+
+        function cargarHistorial() {
+            const ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+            const fechasVentas = ventas.map(venta => venta.fecha.split('T')[0]);
+            const fechasUnicas = [...new Set(fechasVentas)];
+
+            const calendarioVentas = document.getElementById('calendarioVentas');
+            flatpickr(calendarioVentas, {
+                inline: true,
+                dateFormat: "Y-m-d",
+                locale: "es",
+                enable: fechasUnicas,
+                onChange: function(selectedDates, dateStr, instance) {
+                    mostrarVentasDelDia(dateStr);
+                },
+                onMonthChange: function(selectedDates, dateStr, instance) {
+                    marcarDiasConVentas(instance);
+                },
+                onYearChange: function(selectedDates, dateStr, instance) {
+                    }
+            });
+
+            if (fechasUnicas.length > 0) {
+                mostrarVentasDelDia(fechasUnicas[fechasUnicas.length - 1]);
+            } else {
+                document.getElementById('listaVentasDelDia').innerHTML = '<p>No hay ventas registradas.</p>';
+            }
+            
+            // Marcar los días con ventas al cargar inicialmente
+            marcarDiasConVentas(calendarioVentas._flatpickr);
+        }
+
+        function marcarDiasConVentas(instance) {
+            const ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+            const currentMonth = instance.currentMonth;
+            const currentYear = instance.currentYear;
+            
+            instance.days.forEach(dayElem => {
+                const date = new Date(currentYear, currentMonth, parseInt(dayElem.textContent));
+                const dateString = date.toISOString().split('T')[0];
+                
+                if (ventas.some(venta => venta.fecha.startsWith(dateString))) {
+                    dayElem.classList.add('has-venta');
+                } else {
+                    dayElem.classList.remove('has-venta');
+                }
+            });
+        }
+
+        function mostrarVentasDelDia(fecha) {
+            const ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+            const ventasDelDia = ventas.filter(venta => venta.fecha.startsWith(fecha));
+            const listaVentasDelDia = document.getElementById('listaVentasDelDia');
+            listaVentasDelDia.innerHTML = '';
+
+            if (ventasDelDia.length === 0) {
+                listaVentasDelDia.innerHTML = '<p>No hay ventas registradas para este día.</p>';
+                return;
+            }
+
+            ventasDelDia.forEach(venta => {
+                const ventaElement = document.createElement('div');
+                ventaElement.className = 'bg-white/10 p-2 rounded-md';
+                ventaElement.innerHTML = `
+                    <p><strong>${venta.nombreProducto}</strong></p>
+                    <p>Cantidad: ${venta.cantidad}</p>
+                    <p>Total: ₡${venta.total}</p>
+                    <p>Comprador: ${venta.nombreComprador}</p>
+                    <p>Teléfono: ${venta.telefonoComprador}</p>
+                    <p>Hora: ${new Date(venta.fecha).toLocaleTimeString()}</p>
+                `;
+                listaVentasDelDia.appendChild(ventaElement);
+            });
+        }
+
+        function cargarVentasRealizadas() {
+            const ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+            const listaVentasRealizadas = document.getElementById('listaVentasRealizadas');
+            listaVentasRealizadas.innerHTML = '';
+
+            if (ventas.length === 0) {
+                listaVentasRealizadas.innerHTML = '<p>No hay ventas registradas.</p>';
+                return;
+            }
+
+            ventas.forEach(venta => {
+                const ventaElement = document.createElement('div');
+                ventaElement.className = 'bg-white/10 p-2 rounded-md mb-2';
+                ventaElement.innerHTML = `
+                    <p><strong>${venta.nombreProducto}</strong></p>
+                    <p>Cantidad: ${venta.cantidad}</p>
+                    <p>Total: ₡${venta.total.toFixed(2)}</p>
+                    <p>Fecha: ${new Date(venta.fecha).toLocaleString('es-ES')}</p>
+                    <p>Comprador: ${venta.nombreComprador}</p>
+                    <p>Teléfono: ${venta.telefonoComprador}</p>
+                    ${isAdmin ? `
+                        <button class="eliminarVenta px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 mt-2" data-id="${venta.id}">
+                            Eliminar Venta
+                        </button>
+                    ` : ''}
+                `;
+                listaVentasRealizadas.appendChild(ventaElement);
+            });
+
+            if (isAdmin) {
+                document.querySelectorAll('.eliminarVenta').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        if (confirm('¿Está seguro de que desea eliminar esta venta? Esta acción no afectará el historial de ventas.')) {
+                            eliminarVenta(id);
+                        }
+                    });
+                });
+            }
+        }
+
+        function eliminarVenta(id) {
+            let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+            ventas = ventas.filter(venta => venta.id !== parseInt(id));
+            localStorage.setItem('ventas', JSON.stringify(ventas));
+            cargarVentasRealizadas();
+        }
+
+        document.getElementById('login').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === adminUser && password === adminPassword) {
+                isAdmin = true;
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('adminNav').classList.remove('hidden');
+                mostrarVista('catalogo');
+            } else if (password === '') {
+                // Usuario normal (sin contraseña)
+                isAdmin = false;
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('userNav').classList.remove('hidden');
+                mostrarVista('catalogo');
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        });
+
+        document.getElementById('username').addEventListener('input', function() {
+            const passwordField = document.getElementById('passwordField');
+            if (this.value === adminUser) {
+                passwordField.classList.remove('hidden');
+            } else {
+                passwordField.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('irFormulario').addEventListener('click', () => mostrarVista('formulario'));
+        document.getElementById('irCatalogo').addEventListener('click', () => mostrarVista('catalogo'));
+        document.getElementById('irHistorial').addEventListener('click', () => mostrarVista('historial'));
+        document.getElementById('irVentasRealizadas').addEventListener('click', () => mostrarVista('ventasRealizadas'));
+        document.getElementById('irCatalogoUsuario').addEventListener('click', () => mostrarVista('catalogo'));
+
+        document.getElementById('cerrarSesion').addEventListener('click', cerrarSesion);
+        document.getElementById('cerrarSesionUsuario').addEventListener('click', cerrarSesion);
+
+        function cerrarSesion() {
+            isAdmin = false;
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('adminNav').classList.add('hidden');
+            document.getElementById('userNav').classList.add('hidden');
+            document.getElementById('formulario').classList.add('hidden');
+            document.getElementById('catalogo').classList.add('hidden');
+            document.getElementById('historial').classList.add('hidden');
+            document.getElementById('ventasRealizadas').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        document.getElementById('agregar').addEventListener('click', function() {
+            const nombre = document.getElementById('nombre').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const categoria = document.getElementById('categoria').value;
+            const precio = parseFloat(document.getElementById('precio').value);
+            const stock = parseInt(document.getElementById('stock').value) || 0;
+
+            if (!nombre || !descripcion || !categoria || isNaN(precio)) {
+                alert('Por favor, complete todos los campos obligatorios.');
+                return;
+            }
+
+            let productos = JSON.parse(localStorage.getItem('productos')) || [];
+            const id = this.getAttribute('data-id');
+
+            if (id) {
+                // Actualizar producto existente
+                const index = productos.findIndex(p => p.id === parseInt(id));
+                if (index !== -1) {
+                    productos[index] = { ...productos[index], nombre, descripcion, categoria, precio, stock };
+                    if (lastCapturedImage) {
+                        productos[index].imagen = lastCapturedImage;
+                    }
+                }
+            } else {
+                // Agregar nuevo producto
+                const nuevoProducto = { id: Date.now(), nombre, descripcion, categoria, precio, stock };
+                if (lastCapturedImage) {
+                    nuevoProducto.imagen = lastCapturedImage;
+                }
+                productos.push(nuevoProducto);
+            }
+
+            localStorage.setItem('productos', JSON.stringify(productos));
+            limpiarFormulario();
+            mostrarVista('catalogo');
+        });
+
+        document.getElementById('limpiar').addEventListener('click', limpiarFormulario);
+
+        function limpiarFormulario() {
+            document.getElementById('nombre').value = '';
+            document.getElementById('descripcion').value = '';
+            document.getElementById('categoria').value = '';
+            document.getElementById('precio').value = '';
+            document.getElementById('stock').value = '';
+            document.getElementById('imagenPreview').classList.add('hidden');
+            document.getElementById('previewImage').src = '';
+            lastCapturedImage = null;
+            const agregarBtn = document.getElementById('agregar');
+            agregarBtn.textContent = 'Agregar al Catálogo';
+            agregarBtn.removeAttribute('data-id');
+        }
+
+        // Funcionalidad de la cámara
+        const openCameraBtn = document.getElementById('openCamera');
+        const cameraModal = document.getElementById('cameraModal');
+        const closeCameraBtn = document.getElementById('closeCamera');
+        const videoPreview = document.getElementById('videoPreview');
+        const capturePhotoBtn = document.getElementById('capturePhoto');
+        const canvas = document.getElementById('canvas');
+
+        openCameraBtn.addEventListener('click', () => {
+            cameraModal.style.display = 'block';
+            startCamera();
+        });
+
+        closeCameraBtn.addEventListener('click', () => {
+            cameraModal.style.display = 'none';
+            stopCamera();
+        });
+
+        capturePhotoBtn.addEventListener('click', capturePhoto);
+
+        let stream;
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(videoStream => {
+                    stream = videoStream;
+                    videoPreview.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Error accessing camera:', error);
+                    alert('Error al acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado permiso para usarla.');
+                });
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function capturePhoto() {
+            canvas.width = videoPreview.videoWidth;
+            canvas.height = videoPreview.videoHeight;
+            canvas.getContext('2d').drawImage(videoPreview, 0, 0);
+            lastCapturedImage = canvas.toDataURL('image/jpeg');
+            document.getElementById('imagenPreview').classList.remove('hidden');
+            document.getElementById('previewImage').src = lastCapturedImage;
+            cameraModal.style.display = 'none';
+            stopCamera();
+        }
+
+        // Componente React para el botón de reinicio
+        function ResetButton() {
+            const [showConfirmation, setShowConfirmation] = React.useState(false);
+
+            const handleReset = () => {
+                setShowConfirmation(true);
+            };
+
+            const confirmReset = () => {
+                localStorage.clear();
+                setShowConfirmation(false);
+                alert('La aplicación ha sido reiniciada. Todos los datos han sido borrados.');
+                window.location.reload();
+            };
+
+            const cancelReset = () => {
+                setShowConfirmation(false);
+            };
+
+            return (
+                <div className="relative">
+                    <button
+                        onClick={handleReset}
+                        className="px-3 py-2 text-xs border border-transparent font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        Reiniciar Aplicación
+                    </button>
+                    {showConfirmation && (
+                        <div className="absolute z-10 w-64 p-4 mt-2 bg-white rounded-md shadow-lg">
+                            <p className="mb-4 text-sm text-gray-800">¿Está seguro de que desea reiniciar la aplicación? Todos los datos serán borrados.</p>
+                            <div className="flex justify-end space-x-2">
+                                <button
+                                    onClick={cancelReset}
+                                    className="px-3 py-1 text-xs text-gray-800 bg-gray-200 rounded hover:bg-gray-300"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmReset}
+                                    className="px-3 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Renderizar el componente React
+        ReactDOM.render(
+            <ResetButton />,
+            document.getElementById('resetButtonContainer')
+        );
+
+    </script>
+</body>
+</html>
+
